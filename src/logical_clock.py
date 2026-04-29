@@ -1,7 +1,7 @@
 class LogicalClock:
 
     # construtor
-    def __init__(self):
+    def __init__(self) -> None:
         self.__time = 0
 
     # getter
