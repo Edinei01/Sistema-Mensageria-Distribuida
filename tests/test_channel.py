@@ -2,17 +2,18 @@ import unittest
 from src.channel import Channel
 from src.client import Client
 
+
 class TestChannel(unittest.TestCase):
     def setUp(self):
-        self.channel = Channel("devs")
+        self.channel = Channel("dev-team")
         self.alice = Client("Alice")
         self.bob = Client("Bob")
 
-    def test_broadcast_distribution(self):
+    def test_distribute(self):
         self.channel.join(self.alice)
         self.channel.join(self.bob)
 
-        msg = self.alice.send("Olá grupo", channel="devs")
+        msg = self.alice.send("oi time", channel="dev-team")
         delivered = self.channel.distribute(msg)
 
         self.assertEqual(len(delivered), 1)

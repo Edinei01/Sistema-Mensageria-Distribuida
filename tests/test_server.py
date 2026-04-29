@@ -9,9 +9,15 @@ class TestServer(unittest.TestCase):
         self.alice = Client("Alice")
         self.bob = Client("Bob")
 
-    def test_unicast_flow(self):
-        msg = self.alice.send("Oi Bob", receiver=self.bob)
+        self.channel = self.server.create_channel("dev-team")
+        self.channel.join(self.alice)
+        self.channel.join(self.bob)
+
+    def test_unicast_routing_and_process(self):
+        msg = self.alice.send("oi bob", receiver=self.bob)
         self.server.route(msg)
+
+        self.assertEqual(len(self.server.buffer.get_pending()), 1)
 
         self.server.process()
 
