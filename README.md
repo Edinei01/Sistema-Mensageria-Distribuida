@@ -45,6 +45,7 @@ src/
  ├── message_buffer.py
  ├── logical_clock.py
  ├── logger.py
+ ├── channel.py
  └── crypto/
       ├── symmetric.py
       ├── asymmetric.py

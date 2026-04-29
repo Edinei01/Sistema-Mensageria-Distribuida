@@ -1,64 +1,35 @@
-from typing import List, Optional
-from src.message import Message
 from src.message_buffer import MessageBuffer
+from src.logger import Logger
 from src.channel import Channel
-from src.client import Client
 
 
 class Server:
+    def __init__(self):
+        self.buffer = MessageBuffer()
+        self.channels = {}
 
-    def __init__(self) -> None:
-        # buffer central de mensagens (ordenação + entrega)
-        self.__buffer = MessageBuffer()
+    def create_channel(self, name):
+        if name not in self.channels:
+            self.channels[name] = Channel(name)
+        return self.channels[name]
 
-        # canais registrados no servidor
-        self.__channels: dict[str, Channel] = {}
+    def route(self, msg):
+        mode = "UNICAST"
+        if msg.channel:
+            mode = "BROADCAST" if msg.channel == "geral" else "MULTICAST"
 
-    # registra canal no servidor
-    def create_channel(self, name: str) -> Channel:
-        channel = Channel(name)
-        self.__channels[name] = channel
-        return channel
+        Logger.log_event(f"{mode}_SEND", msg.sender.name, msg.timestamp, info=msg.content)
 
-    # retorna canal existente
-    def get_channel(self, name: str) -> Optional[Channel]:
-        return self.__channels.get(name)
-
-    # entrada única do sistema (core do servidor)
-    def route(self, message: Message) -> None:
-        if message.receiver is not None:
-            self.__send_unicast(message)
-
-        elif message.channel is not None:
-            self.__send_multicast(message)
-
+        if msg.channel and msg.channel in self.channels:
+            for sub_msg in self.channels[msg.channel].distribute(msg):
+                self.buffer.add(sub_msg)
         else:
-            self.__send_broadcast(message)
+            self.buffer.add(msg)
 
-    # entrega 1 para 1
-    def __send_unicast(self, message: Message) -> None:
-        self.__buffer.add(message)
-
-    # entrega para canal
-    def __send_multicast(self, message: Message) -> None:
-        channel = self.__channels.get(message.channel)
-
-        if not channel:
-            raise ValueError(f"Canal {message.channel} não existe")
-
-        delivered = channel.broadcast(message)
-
-        for msg in delivered:
-            self.__buffer.add(msg)
-
-    # entrega para todos os canais e clientes conhecidos
-    def __send_broadcast(self, message: Message) -> None:
-        self.__buffer.add(message)
-
-    # entrega final (simulação de rede)
-    def deliver(self) -> None:
-        self.__buffer.deliver()
-
-    # status do sistema
-    def status(self) -> dict:
-        return self.__buffer.status()
+    def process(self):
+        for msg in self.buffer.get_pending():
+            if msg.receiver:
+                new_t = msg.receiver.receive(msg)
+                Logger.log_event("CONSUMED", msg.sender.name, msg.timestamp,
+                                 msg.receiver.name, new_t, msg.content)
+            self.buffer.mark_done(msg.id)
