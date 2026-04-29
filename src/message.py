@@ -1,16 +1,18 @@
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from uuid import uuid4
-from src.client import Client
+
+if TYPE_CHECKING:
+    from src.client import Client
 
 
 class Message:
 
     def __init__(
         self,
-        sender: Client,
+        sender: "Client",
         content: str,
         timestamp: int,
-        receiver: Optional[Client] = None,
+        receiver: Optional["Client"] = None,
         channel: Optional[str] = None
     ) -> None:
 
@@ -27,7 +29,7 @@ class Message:
 
     # GETTERS
     @property
-    def sender(self) -> Client:
+    def sender(self) -> "Client":
         return self.__sender
 
     @property
@@ -39,7 +41,7 @@ class Message:
         return self.__timestamp
 
     @property
-    def receiver(self) -> Optional[Client]:
+    def receiver(self) -> Optional["Client"]:
         return self.__receiver
 
     @property
