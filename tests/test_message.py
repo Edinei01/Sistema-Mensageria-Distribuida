@@ -1,21 +1,12 @@
 import unittest
 from src.message import Message
-
-
-# Mock simples de Client (evita depender da implementação real)
-class FakeClient:
-    def __init__(self, name):
-        self.name = name
-
-    def __str__(self):
-        return self.name
-
+from src.client import Client
 
 class TestMessage(unittest.TestCase):
 
     def setUp(self):
-        self.alice = FakeClient("Alice")
-        self.bob = FakeClient("Bob")
+        self.alice = Client("Alice")
+        self.bob = Client("Bob")
 
     # Teste: criação de mensagem unicast
     def test_create_unicast_message(self):
