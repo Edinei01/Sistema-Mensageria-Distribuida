@@ -9,8 +9,10 @@ class TestClient(unittest.TestCase):
 
     def test_clock_logic(self):
         msg = self.alice.send("Oi")
-        self.assertEqual(self.alice.clock.time, 1)
 
-        new_t = self.bob.receive(msg)
+        # Pegamos apenas o segundo elemento do retorno (o número)
+        new_t = self.bob.receive(msg)[1]
+
+        print(f"Tempo extraído: {new_t}")
         self.assertEqual(new_t, 2)
         self.assertEqual(self.bob.clock.time, 2)

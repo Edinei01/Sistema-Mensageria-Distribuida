@@ -49,7 +49,7 @@ src/
  └── crypto/
       ├── symmetric.py
       ├── asymmetric.py
-      └── tgs.py
+      └── pgp.py
 ```
 
 ---
@@ -95,7 +95,7 @@ As mensagens são protegidas no envio e descriptografadas no recebimento.
 Todas as operações são registradas em arquivo:
 
 ```
-logs/sistema_log.txt
+logs/log_conferencia.txt
 ```
 
 Incluindo:
