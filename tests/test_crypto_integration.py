@@ -1,25 +1,23 @@
 import unittest
 from src.client import Client
-from src.crypto.symmetric import SymmetricCrypto
 
 
 class TestCryptoIntegration(unittest.TestCase):
     def setUp(self):
-        self.shared_key = SymmetricCrypto.generate_key()
-
         self.alice = Client("Alice")
         self.bob = Client("Bob")
 
-        self.alice.set_key(self.shared_key)
-        self.bob.set_key(self.shared_key)
+        self.alice.save_public_key("Bob", self.bob.get_my_public_key())
+        self.bob.save_public_key("Alice", self.alice.get_my_public_key())
 
     def test_end_to_end_encryption(self):
         original_text = "Mensagem Ultra Secreta"
 
         msg = self.alice.send(original_text, receiver=self.bob)
 
+        self.assertIsInstance(msg.content, dict)
         self.assertNotEqual(msg.content, original_text)
-        print(f"\nTexto Criptografado no Buffer: {msg.content}")
+        print(f"\nPayload PGP no Buffer: {msg.content}")
 
         decrypted_text, _ = self.bob.receive(msg)
 
@@ -30,7 +28,6 @@ class TestCryptoIntegration(unittest.TestCase):
         msg = self.alice.send("Segredo", receiver=self.bob)
 
         hacker = Client("Hacker")
-        hacker.set_key(SymmetricCrypto.generate_key())
 
         result, _ = hacker.receive(msg)
         self.assertIn("ERRO", result)

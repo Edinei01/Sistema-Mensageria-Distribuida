@@ -10,7 +10,6 @@ class TestClient(unittest.TestCase):
     def test_clock_logic(self):
         msg = self.alice.send("Oi")
 
-        # Pegamos apenas o segundo elemento do retorno (o número)
         new_t = self.bob.receive(msg)[1]
 
         print(f"Tempo extraído: {new_t}")

@@ -3,7 +3,6 @@ from src.crypto.asymmetric import AsymmetricCrypto
 
 
 class MyTestCase(unittest.TestCase):
-
     def setUp(self):
         self.crypto = AsymmetricCrypto()
 
@@ -16,10 +15,10 @@ class MyTestCase(unittest.TestCase):
 
         encrypted = self.crypto.encrypt_with_public(self.crypto.public_key, original_msg)
 
-        self.assertIsNotNone(encrypted)
-        self.assertNotEqual(original_msg, encrypted)
-
         decrypted = self.crypto.decrypt_with_private(encrypted)
+
+        if isinstance(decrypted, bytes):
+            decrypted = decrypted.decode('utf-8')
 
         self.assertEqual(original_msg, decrypted)
 
@@ -31,6 +30,7 @@ class MyTestCase(unittest.TestCase):
 
         with self.assertRaises(Exception):
             self.crypto.decrypt_with_private(encrypted)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,37 +1,35 @@
 import unittest
 from src.crypto.pgp import PGP
+from src.crypto.asymmetric import AsymmetricCrypto
 
 
 class TestPGPCrypto(unittest.TestCase):
     def setUp(self):
-        self.secret_key = "chave_mestra_secreta"
-        self.pgp = PGP(self.secret_key)
-        self.mensagem = "Mensagem importante"
+        self.destinatario_asym = AsymmetricCrypto()
+        self.mensagem = "Mensagem altamente confidencial"
 
-    def test_signature_generation(self):
-        assinatura = self.pgp.sign_message(self.mensagem)
-        self.assertIsInstance(assinatura, str)
-        self.assertEqual(len(assinatura), 64)
+    def test_hybrid_encryption_structure(self):
+        payload = PGP.encrypt_message(self.mensagem, self.destinatario_asym.public_key)
 
-    def test_valid_signature(self):
-        assinatura = self.pgp.sign_message(self.mensagem)
-        resultado = self.pgp.verify_signature(self.mensagem, assinatura)
-        self.assertTrue(resultado, "A assinatura deveria ser válida para a mensagem original")
+        self.assertIsInstance(payload, dict)
+        self.assertIn("session_key", payload)
+        self.assertIn("data", payload)
+        self.assertNotEqual(payload["data"], self.mensagem)
 
-    def test_invalid_signature_content_changed(self):
-        assinatura = self.pgp.sign_message(self.mensagem)
+    def test_full_decryption_flow(self):
+        payload = PGP.encrypt_message(self.mensagem, self.destinatario_asym.public_key)
 
-        mensagem_adulterada = "Mensagem importantej"
+        mensagem_recuperada = PGP.decrypt_message(payload, self.destinatario_asym)
 
-        resultado = self.pgp.verify_signature(mensagem_adulterada, assinatura)
-        self.assertFalse(resultado, "A assinatura não deveria ser válida se o conteúdo mudou")
+        self.assertEqual(mensagem_recuperada, self.mensagem)
 
-    def test_invalid_signature_wrong_key(self):
-        pgp_hacker = PGP("outra_chave_qualquer")
-        assinatura_falsa = pgp_hacker.sign_message(self.mensagem)
+    def test_decryption_fails_with_wrong_private_key(self):
+        payload = PGP.encrypt_message(self.mensagem, self.destinatario_asym.public_key)
 
-        resultado = self.pgp.verify_signature(self.mensagem, assinatura_falsa)
-        self.assertFalse(resultado, "A assinatura feita com chave diferente deve ser rejeitada")
+        hacker_asym = AsymmetricCrypto()
+
+        with self.assertRaises(Exception):
+            PGP.decrypt_message(payload, hacker_asym)
 
 
 if __name__ == '__main__':
